@@ -1,0 +1,45 @@
+name: Docker CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:24.0.5
+        options: --privileged
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build client image
+        working-directory: ./client
+        run: |
+          docker build -t ch9r1sss/ict2116_lab10-client .
+
+      - name: Build server image
+        working-directory: ./server
+        run: |
+          docker build -t ch9r1sss/ict2116_lab10-server .
+
+      - name: Push images
+        run: |
+          docker push ch9r1sss/ict2116_lab10-client
+          docker push ch9r1sss/ict2116_lab10-server
