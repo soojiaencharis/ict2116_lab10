@@ -9,34 +9,34 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Cache Node.js modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-node-modules
-
-      - name: Install Node.js dependencies
+      ### Lint client folder
+      - name: Install dependencies (client)
+        working-directory: ./client
         run: npm install
-        working-directory: ./
 
-      - name: Create reports directory
-        run: mkdir -p reports
-        working-directory: ./
+      - name: Run ESLint on client
+        working-directory: ./client
+        run: |
+          mkdir -p ../reports
+          npx eslint . --format @microsoft/eslint-formatter-sarif --output-file ../reports/eslint-client.sarif || true
 
-      - name: Install ESLint SARIF Formatter
-        run: npm install @microsoft/eslint-formatter-sarif --save-dev
-        working-directory: ./
+      ### Lint server folder
+      - name: Install dependencies (server)
+        working-directory: ./server
+        run: npm install
 
-      - name: Run ESLint with SARIF output
-        run: npx eslint . --format @microsoft/eslint-formatter-sarif --output-file reports/eslint-results.sarif || true
-        working-directory: ./
+      - name: Run ESLint on server
+        working-directory: ./server
+        run: |
+          npx eslint . --format @microsoft/eslint-formatter-sarif --output-file ../reports/eslint-server.sarif || true
 
-      - name: Debug ESLint Output
-        run: cat reports/eslint-results.sarif || echo "No SARIF report generated"
-        working-directory: ./
-
-      - name: Upload SARIF report
+      ### Combine or Upload SARIF (optional)
+      - name: Upload SARIF report (client)
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: reports/eslint-results.sarif
+          sarif_file: reports/eslint-client.sarif
+
+      - name: Upload SARIF report (server)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/eslint-server.sarif
