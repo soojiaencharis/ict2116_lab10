@@ -18,18 +18,23 @@ jobs:
 
       - name: Install Node.js dependencies
         run: npm install
+        working-directory: ./
 
       - name: Create reports directory
         run: mkdir -p reports
+        working-directory: ./
 
       - name: Install ESLint SARIF Formatter
         run: npm install @microsoft/eslint-formatter-sarif --save-dev
+        working-directory: ./
 
       - name: Run ESLint with SARIF output
         run: npx eslint . --format @microsoft/eslint-formatter-sarif --output-file reports/eslint-results.sarif || true
+        working-directory: ./
 
       - name: Debug ESLint Output
         run: cat reports/eslint-results.sarif || echo "No SARIF report generated"
+        working-directory: ./
 
       - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v3
